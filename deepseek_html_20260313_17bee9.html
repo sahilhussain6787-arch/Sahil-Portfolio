@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahil Hussain · cinematic editor</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0b0b0b;
+            color: #f0f0f0;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* smooth scroll + subtle loading fade */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            animation: fadeIn 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        /* glassmorphism base */
+        .glass {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1.5rem;
+        }
+
+        .glass-card {
+            background: rgba(25, 25, 25, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 70, 70, 0.15);
+            border-radius: 2rem;
+            transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.3, 1), border-color 0.3s;
+        }
+
+        .glass-card:hover {
+            transform: scale(1.02) translateY(-4px);
+            border-color: rgba(255, 70, 70, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(200, 0, 0, 0.2) inset;
+        }
+
+        /* container */
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* section spacing */
+        section {
+            margin: 6rem 0;
+        }
+
+        /* typography */
+        h1, h2, h3 {
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            line-height: 1;
+            font-weight: 600;
+            background: linear-gradient(to right, #fff, #f0a0a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            display: inline-block;
+            border-left: 6px solid #e50914;
+            padding-left: 1.5rem;
+        }
+
+        /* accent */
+        .accent-red {
+            color: #e50914;
+        }
+
+        /* buttons */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #e50914;
+            color: white;
+            padding: 0.9rem 2.2rem;
+            border-radius: 40px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px -5px rgba(229, 9, 20, 0.4);
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: #ff1a25;
+            transform: scale(1.05);
+            box-shadow: 0 20px 30px -5px rgba(229, 9, 20, 0.7);
+        }
+
+        /* netflix rows */
+        .netflix-row {
+            display: flex;
+            gap: 1.2rem;
+            overflow-x: auto;
+            padding: 1rem 0.2rem 2rem 0.2rem;
+            scrollbar-width: thin;
+            scrollbar-color: #e50914 #1f1f1f;
+        }
+
+        .netflix-row::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .netflix-row::-webkit-scrollbar-thumb {
+            background: #e50914;
+            border-radius: 10px;
+        }
+
+        .netflix-card {
+            min-width: 280px;
+            width: 300px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #151515;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            cursor: pointer;
+        }
+
+        .netflix-card:hover {
+            transform: scale(1.05) translateY(-8px);
+            border-color: #e5091470;
+            box-shadow: 0 20px 30px black;
+        }
+
+        .card-thumb {
+            width: 100%;
+            height: 160px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            transition: all 0.4s;
+        }
+
+        .netflix-card:hover .card-thumb {
+            opacity: 0.8;
+            filter: brightness(1.2);
+        }
+
+        .card-thumb i {
+            position: absolute;
+            top: 40%;
+            left: 45%;
+            font-size: 3rem;
+            color: white;
+            text-shadow: 0 0 20px black;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .netflix-card:hover .card-thumb i {
+            opacity: 1;
+        }
+
+        .card-meta {
+            padding: 1rem;
+        }
+
+        /* before after slider */
+        .ba-container {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .comparison-slider {
+            flex: 1 1 400px;
+            background: #1a1a1a;
+            border-radius: 2rem;
+            height: 280px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 30px -8px black;
+            border: 1px solid #333;
+        }
+
+        .comparison-slider .before, .comparison-slider .after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .comparison-slider .before {
+            background-image: url('https://placehold.co/800x600/331111/441122?text=RAW+LOG');
+        }
+        .comparison-slider .after {
+            background-image: url('https://placehold.co/800x600/441111/f05454?text=COLOR+GRADED');
+            width: 50%;
+            border-right: 3px solid #e50914;
+        }
+
+        .slider-handle {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: white;
+            transform: translateX(-50%);
+            pointer-events: none;
+            box-shadow: 0 0 10px #e50914;
+        }
+
+        /* tools grid */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 2rem;
+            align-items: center;
+            background: rgba(30,30,30,0.5);
+            backdrop-filter: blur(8px);
+            border-radius: 3rem;
+            padding: 2.5rem;
+            border: 1px solid rgba(229,9,20,0.2);
+        }
+
+        .tool-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #ccc;
+            transition: all 0.2s;
+            filter: brightness(0.9);
+        }
+
+        .tool-item:hover {
+            color: #e50914;
+            filter: brightness(1.2);
+            transform: translateY(-3px);
+        }
+
+        .tool-item i, .tool-item span {
+            font-size: 2rem;
+        }
+
+        /* testimonials */
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.8rem;
+        }
+
+        .testimonial {
+            background: rgba(25,25,25,0.7);
+            backdrop-filter: blur(6px);
+            padding: 2rem;
+            border-radius: 2rem;
+            border: 1px solid #2a2a2a;
+            transition: 0.3s;
+        }
+
+        .testimonial:hover {
+            border-color: #e50914;
+        }
+
+        /* contact apple style */
+        .contact-block {
+            background: #141414;
+            border-radius: 3rem;
+            padding: 3rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #2b2b2b;
+            box-shadow: 0 30px 40px -20px black;
+        }
+
+        .contact-details p {
+            font-size: 1.3rem;
+            font-weight: 300;
+            margin: 0.7rem 0;
+        }
+
+        .contact-details i {
+            width: 2rem;
+            color: #e50914;
+        }
+
+        /* micro-animations */
+        .hover-lift {
+            transition: transform 0.25s cubic-bezier(0.2,0.9,0.3,1);
+        }
+        .hover-lift:hover {
+            transform: translateY(-6px);
+        }
+
+        /* hero video background (simulated) */
+        .hero {
+            position: relative;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            margin-top: 0;
+            border-radius: 0 0 3rem 3rem;
+            overflow: hidden;
+        }
+
+        .hero-video-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%), 
+                        url('https://placehold.co/1920x1080/0f0f0f/441111?text=CINEMATIC+SHOWREEL+BACKGROUND');
+            background-size: cover;
+            background-position: center;
+            z-index: -2;
+        }
+
+        .hero-video-bg::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 30% 50%, transparent 0%, rgba(0,0,0,0.8) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+        }
+
+        /* footer / small */
+        .footnote {
+            color: #777;
+        }
+
+        /* mobile */
+        @media (max-width: 700px) {
+            .container { padding: 0 1rem; }
+            h2 { font-size: 2rem; }
+            .tools-grid { grid-template-columns: repeat(3,1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section (cinematic + showreel CTA) -->
+        <section class="hero">
+            <div class="hero-video-bg"></div>
+            <div class="hero-content">
+                <span class="glass" style="display: inline-block; padding: 0.4rem 1rem; border-radius: 40px; margin-bottom: 1.5rem; border-color: #e5091440;"> ✦ DUBAI-BASED EDITOR</span>
+                <h1>Sahil Hussain<br><span style="font-size: 0.45em; font-weight: 400; background: none; -webkit-text-fill-color: #ccc;">cinematic storyteller</span></h1>
+                <p style="font-size: 1.3rem; max-width: 600px; margin: 1.5rem 0; color: #ddd;">Premium video editor specializing in high-end commercials, podcasts & social content.</p>
+                <a href="#" class="btn-primary" onclick="alert('▶️ Playing showreel (concept)'); return false;"><i class="fas fa-play"></i> Watch showreel</a>
+            </div>
+        </section>
+
+        <!-- Showreel Section (netflix preview cards) -->
+        <section>
+            <h2>Showreel <span class="accent-red">· 2025</span></h2>
+            <div class="netflix-row">
+                <div class="netflix-card">
+                    <div class="card-thumb" style="background-image: url('https://placehold.co/600x400/2a1a1a/b84a4a?text=SHOWREEL+1')"><i class="fas fa-play-circle"></i></div>
+                    <div class="card-meta"><h4>Cinematic showreel 2025</h4><span class="footnote">1:24 min</span></div>
+                </div>
+                <div class="netflix-card">
+                    <div class="card-thumb" style="background-image: url('https://placehold.co/600x400/1f2a1a/5fb84a?text=COMMERCIAL+REEL')"><i class="fas fa-play-circle"></i></div>
+                    <div class="card-meta"><h4>Commercial cuts</h4><span class="footnote">2:10 min</span></div>
+                </div>
+                <div class="netflix-card">
+                    <div class="card-thumb" style="background-image: url('https://placehold.co/600x400/1a1f2a/4a7fb8?text=COLOR+SHOWCASE')"><i class="fas fa-play-circle"></i></div>
+                    <div class="card-meta"><h4>Color grade reel</h4><span class="footnote">1:45 min</span></div>
+                </div>
+                <div class="netflix-card">
+                    <div class="card-thumb" style="background-image: url('https://placehold.co/600x400/2a1a2a/b84ab8?text=MOTION+REEL')"><i class="fas fa-play-circle"></i></div>
+                    <div class="card-meta"><h4>Motion + VFX</h4><span class="footnote">1:58 min</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Portfolio Categories (netflix style rows) -->
+        <section>
+            <h2>Categories <span class="accent-red">✦</span></h2>
+            <!-- Short-form Reels -->
+            <h3 style="margin: 1.5rem 0 0.5rem;"><i class="fas fa-film" style="color: #e50914;"></i> Short‑form Reels</h3>
+            <div class="netflix-row">
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/332211/d4662a?text=IG+REEL+1')"></div><div class="card-meta">TikTok · 0:45</div></div>
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/223322/66aa55?text=YTSHORTS')"></div><div class="card-meta">Shorts · 0:30</div></div>
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/112233/5577aa?text=REEL+AD')"></div><div class="card-meta">Instagram · 0:50</div></div>
+            </div>
+            <!-- Podcast Editing -->
+            <h3 style="margin: 2rem 0 0.5rem;"><i class="fas fa-microphone-alt" style="color: #e50914;"></i> Podcast Editing</h3>
+            <div class="netflix-row">
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/2a2a2a/b8b8b8?text=PODCAST+A')"></div><div class="card-meta">The Dialogue</div></div>
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/2a1f1f/b87a7a?text=PODCAST+B')"></div><div class="card-meta">Storytellers</div></div>
+            </div>
+            <!-- YouTube Long-form -->
+            <h3 style="margin: 2rem 0 0.5rem;"><i class="fab fa-youtube" style="color: #e50914;"></i> YouTube Long‑form</h3>
+            <div class="netflix-row">
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/1a2a2a/6ab8b8?text=DOCU')"></div><div class="card-meta">Documentary · 28min</div></div>
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/2a1a2a/b86ab8?text=VLOG')"></div><div class="card-meta">Travel vlog · 18min</div></div>
+            </div>
+            <!-- Motion Graphics & Cinematic Color Grading (combined row for brevity) -->
+            <h3 style="margin: 2rem 0 0.5rem;"><i class="fas fa-cubes" style="color: #e50914;"></i> Motion + Color</h3>
+            <div class="netflix-row">
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/111d2a/4a7db8?text=MGRAPH+1')"></div><div class="card-meta">Motion graphics</div></div>
+                <div class="netflix-card"><div class="card-thumb" style="background-image: url('https://placehold.co/600x400/1f2a11/7db84a?text=COLOR+GRADE')"></div><div class="card-meta">Cinematic grade</div></div>
+            </div>
+        </section>
+
+        <!-- Before & After Comparison (interactive slider concept) -->
+        <section>
+            <h2>Before · After <span class="accent-red">/ raw → final</span></h2>
+            <div class="ba-container">
+                <div class="comparison-slider">
+                    <div class="before"></div>
+                    <div class="after" id="afterClip" style="width: 50%;"></div>
+                    <div class="slider-handle"></div>
+                    <!-- simple slider concept (mouse move demo) -->
+                    <input type="range" min="0" max="100" value="50" style="position:absolute; bottom:10px; left:20%; width:60%; z-index:10; opacity:0.8;" oninput="document.getElementById('afterClip').style.width=this.value+'%'">
+                </div>
+                <div style="flex:1; min-width:200px; background: #1a1a1a; border-radius: 2rem; padding:2rem; border:1px solid #e5091430;">
+                    <p><span style="color:#e50914;">⬤</span> Drag slider → <br>flat log to cinematic grade.<br> <span class="footnote">Hover & slide to compare.</span></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Software & Tools (premium logos) -->
+        <section>
+            <h2>Tools & workflow</h2>
+            <div class="tools-grid glass">
+                <!-- video editing -->
+                <div class="tool-item"><i class="fas fa-video" style="color:#e87c7c;"></i><span>Premiere Pro</span></div>
+                <div class="tool-item"><i class="fas fa-film" style="color:#b87ce8;"></i><span>After Effects</span></div>
+                <div class="tool-item"><i class="fas fa-chart-line" style="color:#7ce8b8;"></i><span>DaVinci Resolve</span></div>
+                <!-- design tools -->
+                <div class="tool-item"><i class="fas fa-paint-brush" style="color:#7caae8;"></i><span>Photoshop</span></div>
+                <div class="tool-item"><i class="fas fa-pencil-ruler" style="color:#e8b87c;"></i><span>Canva</span></div>
+                <!-- AI tools -->
+                <div class="tool-item"><i class="fas fa-robot" style="color:#aaf0c0;"></i><span>ChatGPT</span></div>
+                <div class="tool-item"><i class="fas fa-cloud" style="color:#f0a0a0;"></i><span>Runway ML</span></div>
+                <div class="tool-item"><i class="fas fa-palette" style="color:#c8a0f0;"></i><span>Midjourney</span></div>
+                <div class="tool-item"><i class="fas fa-wave-square" style="color:#f0c0a0;"></i><span>ElevenLabs</span></div>
+                <div class="tool-item"><i class="fas fa-magic" style="color:#a0f0e0;"></i><span>Topaz AI</span></div>
+                <div class="tool-item"><i class="fas fa-fire" style="color:#f0a07c;"></i><span>Adobe Firefly</span></div>
+            </div>
+        </section>
+
+        <!-- Client Work / Projects (netflix grid) -->
+        <section>
+            <h2>Client work</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr)); gap: 1.5rem;">
+                <div class="glass-card" style="padding: 0; overflow:hidden;"><div style="height:180px; background:url('https://placehold.co/600x400/2a1e1e/c28080?text=GLOBAL+BRAND')"></div><div style="padding:1rem;"><h4>Nike concept</h4><p class="footnote">editorial</p></div></div>
+                <div class="glass-card" style="padding: 0; overflow:hidden;"><div style="height:180px; background:url('https://placehold.co/600x400/1e2a1e/80c280?text=PODCAST+LAUNCH')"></div><div style="padding:1rem;"><h4>The Diary</h4><p class="footnote">podcast</p></div></div>
+                <div class="glass-card" style="padding: 0; overflow:hidden;"><div style="height:180px; background:url('https://placehold.co/600x400/1e1e2a/8080c2?text=DOCUMENTARY')"></div><div style="padding:1rem;"><h4>Arctic film</h4><p class="footnote">docu</p></div></div>
+                <div class="glass-card" style="padding: 0; overflow:hidden;"><div style="height:180px; background:url('https://placehold.co/600x400/2a1e2a/c280c2?text=MUSIC+VIDEO')"></div><div style="padding:1rem;"><h4>Aurora MV</h4><p class="footnote">music</p></div></div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section>
+            <h2>Kind words</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial">
+                    <i class="fas fa-quote-right" style="color:#e50914; font-size:2rem; opacity:0.4;"></i>
+                    <p>Sahil brought our documentary to life with his cinematic eye. Every frame is pure art.</p>
+                    <p style="margin-top:1rem;">— <strong>Lina Khaled</strong>, Director</p>
+                </div>
+                <div class="testimonial">
+                    <i class="fas fa-quote-right" style="color:#e50914; font-size:2rem; opacity:0.4;"></i>
+                    <p>Fast, creative, and technically flawless. Our podcast never sounded this rich.</p>
+                    <p style="margin-top:1rem;">— <strong>Omar Rashid</strong>, Podcaster</p>
+                </div>
+                <div class="testimonial">
+                    <i class="fas fa-quote-right" style="color:#e50914; font-size:2rem; opacity:0.4;"></i>
+                    <p>Color grading is top tier — exactly the high-end netflix look we wanted.</p>
+                    <p style="margin-top:1rem;">— <strong>Nadia</strong>, DP</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section (minimal apple style) -->
+        <section style="margin-bottom:3rem;">
+            <h2>Let’s connect</h2>
+            <div class="contact-block">
+                <div class="contact-details">
+                    <p><i class="fas fa-user"></i> Sahil Hussain</p>
+                    <p><i class="fas fa-phone-alt"></i> +971 56 950 9964</p>
+                    <p><i class="fas fa-envelope"></i> editor8767@gmail.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Dubai, UAE</p>
+                </div>
+                <div style="background: #e50914; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 40px #e50914;">
+                    <i class="fas fa-video" style="font-size:2rem;"></i>
+                </div>
+            </div>
+        </section>
+
+        <!-- footer tiny -->
+        <div style="border-top: 1px solid #222; padding: 2rem 0; text-align: center; color:#555;">
+            <p>© Sahil Hussain — cinematic editing. All work shown concept.</p>
+        </div>
+    </div>
+
+    <!-- micro interactions (scroll, hover) rely on css -->
+    <script>
+        // tiny slider already interactive
+        // cinematic loading? already faded in.
+        // hover video preview simulated with icons.
+
+        // Additional micro: background parallax tilt? (optional)
+        // ensure slider works fine
+    </script>
+</body>
+</html>
